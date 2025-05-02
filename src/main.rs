@@ -5,7 +5,6 @@ use bevy::{
     ecs::{
         component::Component,
         query::With,
-        schedule::IntoScheduleConfigs,
         system::{Commands, Query, Res},
     },
     input::{ButtonInput, keyboard::KeyCode},
@@ -23,18 +22,29 @@ use rand::random;
 
 use bevy_ball_game::dx12_plugin::dx12_plugin;
 
-const PLAYER_SIZE: f32 = 64.0;  // Size of the player sprite
+const PLAYER_SIZE: f32 = 64.0; // Size of the player sprite
 const PLAYER_SIZE_HALF: f32 = PLAYER_SIZE / 2.0;
 const PLAYER_SPEED: f32 = 500.0;
 
 const MUMBER_OF_ENEMIES: usize = 4;
+const ENEMY_SIZE: f32 = 64.0; // Size of the enemy sprite
+const ENEMY_SIZE_HALF: f32 = ENEMY_SIZE / 2.0;
 const ENEMY_SPEED: f32 = 200.0;
 
 fn main() {
     App::new()
         .add_plugins(dx12_plugin())
-        .add_systems(Startup, (spawn_camera, spawn_player, spawn_enemies).chain())
-        .add_systems(Update, (player_movement, confine_player_movement).chain())
+        .add_systems(Startup, (spawn_camera, spawn_player, spawn_enemies))
+        .add_systems(
+            Update,
+            (
+                player_movement,
+                confine_player_movement,
+                enemy_movement,
+                confine_enemy_movement,
+                update_enemy_direction,
+            ),
+        )
         .run();
 }
 
@@ -84,7 +94,7 @@ fn spawn_enemies(
     for _i in 0..MUMBER_OF_ENEMIES {
         let random_x = random::<f32>() * window.width();
         let random_y = random::<f32>() * window.height();
-        
+
         commands.spawn((
             Sprite {
                 image: asset_server.load("sprites/ball_red_large.png"),
@@ -92,7 +102,7 @@ fn spawn_enemies(
             },
             Transform::from_xyz(random_x, random_y, 0.0),
             Enemy {
-                direction: Vec2::new(random(), random())
+                direction: Vec2::new(random(), random()),
             },
         ));
     }
@@ -132,7 +142,6 @@ fn confine_player_movement(
 ) {
     let window = window_query.single().unwrap();
     if let Ok(mut player_transform) = player_query.single_mut() {
-        // let window = window_query.single().unwrap();
 
         let x_min = PLAYER_SIZE_HALF;
         let x_max = window.width() - PLAYER_SIZE_HALF;
@@ -155,5 +164,58 @@ fn confine_player_movement(
         }
 
         player_transform.translation = translation;
+    }
+}
+
+fn enemy_movement(mut enemy_query: Query<(&mut Transform, &Enemy)>, time: Res<Time>) {
+    for (mut transform, enemy) in enemy_query.iter_mut() {
+        transform.translation += enemy.direction.extend(0.0) * ENEMY_SPEED * time.delta_secs();
+    }
+}
+
+fn update_enemy_direction(
+    mut enemy_query: Query<(&Transform, &mut Enemy)>,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+) {
+    let window = window_query.single().unwrap();
+    let x_min = ENEMY_SIZE_HALF;
+    let x_max = window.width() - ENEMY_SIZE_HALF;
+    let y_min = ENEMY_SIZE_HALF;
+    let y_max = window.height() - ENEMY_SIZE_HALF;
+
+    for (transform, mut enemy) in enemy_query.iter_mut() {
+        // Check if the enemy is out of bounds and if so reverse its direction
+        if transform.translation.x < x_min || transform.translation.x > x_max {
+            enemy.direction.x *= -1.0;
+        }
+        if transform.translation.y < y_min || transform.translation.y > y_max {
+            enemy.direction.y *= -1.0;
+        }
+    }
+}
+
+fn confine_enemy_movement(
+    mut enemy_query: Query<&mut Transform, With<Enemy>>,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+) {
+    let window = window_query.single().unwrap();
+    let x_min = ENEMY_SIZE_HALF;
+    let x_max = window.width() - ENEMY_SIZE_HALF;
+    let y_min = ENEMY_SIZE_HALF;
+    let y_max = window.height() - ENEMY_SIZE_HALF;
+
+    for mut transform in enemy_query.iter_mut() {
+        // Bound the enemy x position
+        if transform.translation.x < x_min {
+            transform.translation.x = x_min;
+        } else if transform.translation.x > x_max {
+            transform.translation.x = x_max;
+        }
+        // Bound the enemy y position
+        if transform.translation.y < y_min {
+            transform.translation.y = y_min;
+        } else if transform.translation.y > y_max {
+            transform.translation.y = y_max;
+        }
     }
 }
