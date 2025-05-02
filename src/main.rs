@@ -1,24 +1,12 @@
 use bevy::{
-    app::{Startup, Update},
-    asset::AssetServer,
-    core_pipeline::core_2d::Camera2d,
-    ecs::{
+    app::{Startup, Update}, asset::AssetServer, audio::{AudioLoader, AudioPlayer, AudioSink, AudioSource, PlaybackSettings}, core_pipeline::core_2d::Camera2d, ecs::{
         component::Component,
         query::With,
         system::{Commands, Query, Res},
-    },
-    input::{ButtonInput, keyboard::KeyCode},
-    math::Vec2,
-    prelude::App,
-    render::camera::Camera,
-    sprite::Sprite,
-    time::Time,
-    transform::components::Transform,
-    utils::default,
-    window::{PrimaryWindow, Window},
+    }, input::{keyboard::KeyCode, ButtonInput}, math::Vec2, prelude::App, render::camera::Camera, sprite::Sprite, time::Time, transform::components::Transform, utils::default, window::{PrimaryWindow, Window}
 };
 
-use rand::random;
+use rand::{random, seq::IndexedRandom};
 
 use bevy_ball_game::dx12_plugin::dx12_plugin;
 
@@ -174,8 +162,10 @@ fn enemy_movement(mut enemy_query: Query<(&mut Transform, &Enemy)>, time: Res<Ti
 }
 
 fn update_enemy_direction(
+    mut commands: Commands,
     mut enemy_query: Query<(&Transform, &mut Enemy)>,
     window_query: Query<&Window, With<PrimaryWindow>>,
+    asset_server: Res<AssetServer>,
 ) {
     let window = window_query.single().unwrap();
     let x_min = ENEMY_SIZE_HALF;
@@ -183,13 +173,28 @@ fn update_enemy_direction(
     let y_min = ENEMY_SIZE_HALF;
     let y_max = window.height() - ENEMY_SIZE_HALF;
 
+    let sound_effects = vec!("audio/pluck_001.ogg", "audio/pluck_002.ogg");
+
     for (transform, mut enemy) in enemy_query.iter_mut() {
+        let mut direction_has_changed = false;
+
         // Check if the enemy is out of bounds and if so reverse its direction
         if transform.translation.x < x_min || transform.translation.x > x_max {
             enemy.direction.x *= -1.0;
+            direction_has_changed = true;
         }
         if transform.translation.y < y_min || transform.translation.y > y_max {
             enemy.direction.y *= -1.0;
+            direction_has_changed = true;
+        }
+
+        // Play sound effect if direction changes
+        if direction_has_changed {
+            let sound_effect_path = sound_effects.choose(&mut rand::rng()).unwrap();
+            commands.spawn((
+                AudioPlayer::new(asset_server.load(*sound_effect_path)),
+                PlaybackSettings::DESPAWN,
+            ));
         }
     }
 }
