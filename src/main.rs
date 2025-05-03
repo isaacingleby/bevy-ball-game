@@ -34,6 +34,7 @@ const MUMBER_OF_ENEMIES: usize = 4;
 const ENEMY_SIZE: f32 = 64.0; // Size of the enemy sprite
 const ENEMY_SIZE_HALF: f32 = ENEMY_SIZE / 2.0;
 const ENEMY_SPEED: f32 = 200.0;
+const ENEMY_SPAWN_TIME: f32 = 10.0; // Time in seconds to spawn a new enemy
 
 const NUMBER_OF_STARS: usize = 10;
 const STAR_SIZE: f32 = 30.0; // Size of the star sprite
@@ -45,6 +46,7 @@ fn main() {
         .add_plugins(dx12_plugin())
         .init_resource::<Score>()
         .init_resource::<StarSpawnTimer>()
+        .init_resource::<EnemySpawnTimer>()
         .add_systems(
             Startup,
             (spawn_camera, spawn_player, spawn_enemies, spawn_stars),
@@ -58,6 +60,8 @@ fn main() {
                 confine_player_movement,
                 player_hit_star,
                 spawn_stars_over_time,
+                increment_enemy_spawn_timer,
+                spawn_enemies_over_time,
                 enemy_movement,
                 confine_enemy_movement,
                 update_enemy_direction,
@@ -92,6 +96,19 @@ impl Default for StarSpawnTimer {
     fn default() -> Self {
         Self {
             timer: Timer::from_seconds(STAR_SPAWN_TIME, TimerMode::Repeating),
+        }
+    }
+}
+
+#[derive(Resource)]
+struct EnemySpawnTimer {
+    timer: Timer,
+}
+
+impl Default for EnemySpawnTimer {
+    fn default() -> Self {
+        Self {
+            timer: Timer::from_seconds(ENEMY_SPAWN_TIME, TimerMode::Repeating),
         }
     }
 }
@@ -369,6 +386,34 @@ fn spawn_stars_over_time(
             },
             Transform::from_xyz(random_x, random_y, 0.0),
             Star,
+        ));
+    }
+}
+
+fn increment_enemy_spawn_timer(time: Res<Time>, mut enemy_spawn_timer: ResMut<EnemySpawnTimer>) {
+    enemy_spawn_timer.timer.tick(time.delta());
+}
+
+fn spawn_enemies_over_time(
+    mut commands: Commands,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    enemy_spawn_timer: Res<EnemySpawnTimer>,
+    asset_server: Res<AssetServer>,
+) {
+    if enemy_spawn_timer.timer.finished() {
+        let window = window_query.single().unwrap();
+        let random_x = random::<f32>() * window.width();
+        let random_y = random::<f32>() * window.height();
+
+        commands.spawn((
+            Sprite {
+                image: asset_server.load("sprites/ball_red_large.png"),
+                ..default()
+            },
+            Transform::from_xyz(random_x, random_y, 0.0),
+            Enemy {
+                direction: Vec2::new(random(), random()).normalize(),
+            },
         ));
     }
 }
