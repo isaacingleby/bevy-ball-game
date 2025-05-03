@@ -4,17 +4,19 @@ use bevy::{
     audio::{AudioPlayer, PlaybackSettings},
     core_pipeline::core_2d::Camera2d,
     ecs::{
+        change_detection::DetectChanges,
         component::Component,
         entity::Entity,
         query::With,
-        system::{Commands, Query, Res},
+        resource::Resource,
+        system::{Commands, Query, Res, ResMut},
     },
     input::{ButtonInput, keyboard::KeyCode},
     math::Vec2,
     prelude::App,
     render::camera::Camera,
     sprite::Sprite,
-    time::Time,
+    time::{Time, Timer, TimerMode},
     transform::components::Transform,
     utils::default,
     window::{PrimaryWindow, Window},
@@ -36,10 +38,13 @@ const ENEMY_SPEED: f32 = 200.0;
 const NUMBER_OF_STARS: usize = 10;
 const STAR_SIZE: f32 = 30.0; // Size of the star sprite
 const STAR_SIZE_HALF: f32 = STAR_SIZE / 2.0;
+const STAR_SPAWN_TIME: f32 = 1.0; // Time in seconds to spawn a new star
 
 fn main() {
     App::new()
         .add_plugins(dx12_plugin())
+        .init_resource::<Score>()
+        .init_resource::<StarSpawnTimer>()
         .add_systems(
             Startup,
             (spawn_camera, spawn_player, spawn_enemies, spawn_stars),
@@ -47,9 +52,12 @@ fn main() {
         .add_systems(
             Update,
             (
+                update_score,
+                increment_star_spawn_timer,
                 player_movement,
                 confine_player_movement,
                 player_hit_star,
+                spawn_stars_over_time,
                 enemy_movement,
                 confine_enemy_movement,
                 update_enemy_direction,
@@ -69,6 +77,24 @@ struct Enemy {
 
 #[derive(Component)]
 struct Star;
+
+#[derive(Resource, Default)]
+struct Score {
+    value: u32,
+}
+
+#[derive(Resource)]
+struct StarSpawnTimer {
+    timer: Timer,
+}
+
+impl Default for StarSpawnTimer {
+    fn default() -> Self {
+        Self {
+            timer: Timer::from_seconds(STAR_SPAWN_TIME, TimerMode::Repeating),
+        }
+    }
+}
 
 fn spawn_player(
     mut commands: Commands,
@@ -295,6 +321,7 @@ fn player_hit_star(
     player_query: Query<&Transform, With<Player>>,
     mut star_query: Query<(Entity, &Transform), With<Star>>,
     asset_server: Res<AssetServer>,
+    mut score: ResMut<Score>,
 ) {
     if let Ok(player_transform) = player_query.single() {
         for (star_entity, star_transform) in star_query.iter_mut() {
@@ -303,6 +330,7 @@ fn player_hit_star(
                 .distance(star_transform.translation);
             if distance < (PLAYER_SIZE_HALF + STAR_SIZE_HALF) {
                 println!("Player hit star!");
+                score.value += 1;
                 commands.spawn((
                     AudioPlayer::new(asset_server.load("audio/laserLarge_000.ogg")),
                     PlaybackSettings::DESPAWN,
@@ -310,5 +338,37 @@ fn player_hit_star(
                 commands.entity(star_entity).despawn();
             }
         }
+    }
+}
+
+fn update_score(score: Res<Score>) {
+    if score.is_changed() {
+        println!("Score: {}", score.value);
+    }
+}
+
+fn increment_star_spawn_timer(time: Res<Time>, mut star_spawn_timer: ResMut<StarSpawnTimer>) {
+    star_spawn_timer.timer.tick(time.delta());
+}
+
+fn spawn_stars_over_time(
+    mut commands: Commands,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    star_spawn_timer: Res<StarSpawnTimer>,
+    asset_server: Res<AssetServer>,
+) {
+    if star_spawn_timer.timer.finished() {
+        let window = window_query.single().unwrap();
+        let random_x = random::<f32>() * window.width();
+        let random_y = random::<f32>() * window.height();
+
+        commands.spawn((
+            Sprite {
+                image: asset_server.load("sprites/star.png"),
+                ..default()
+            },
+            Transform::from_xyz(random_x, random_y, 0.0),
+            Star,
+        ));
     }
 }
