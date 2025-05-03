@@ -1,5 +1,5 @@
 use bevy::{
-    app::{Startup, Update},
+    app::{AppExit, Startup, Update},
     asset::AssetServer,
     audio::{AudioPlayer, PlaybackSettings},
     core_pipeline::core_2d::Camera2d,
@@ -7,6 +7,7 @@ use bevy::{
         change_detection::DetectChanges,
         component::Component,
         entity::Entity,
+        event::{Event, EventReader, EventWriter},
         query::With,
         resource::Resource,
         system::{Commands, Query, Res, ResMut},
@@ -45,8 +46,10 @@ fn main() {
     App::new()
         .add_plugins(dx12_plugin())
         .init_resource::<Score>()
+        .init_resource::<HighScores>()
         .init_resource::<StarSpawnTimer>()
         .init_resource::<EnemySpawnTimer>()
+        .add_event::<GameOverEvent>()
         .add_systems(
             Startup,
             (spawn_camera, spawn_player, spawn_enemies, spawn_stars),
@@ -66,6 +69,9 @@ fn main() {
                 confine_enemy_movement,
                 update_enemy_direction,
                 enemy_hit_player,
+                handle_game_over,
+                handle_high_scores,
+                exit_game,
             ),
         )
         .run();
@@ -85,6 +91,11 @@ struct Star;
 #[derive(Resource, Default)]
 struct Score {
     value: u32,
+}
+
+#[derive(Resource, Default)]
+struct HighScores {
+    scores: Vec<(String, u32)>,
 }
 
 #[derive(Resource)]
@@ -112,6 +123,9 @@ impl Default for EnemySpawnTimer {
         }
     }
 }
+
+#[derive(Event)]
+struct GameOverEvent;
 
 fn spawn_player(
     mut commands: Commands,
@@ -314,6 +328,7 @@ fn enemy_hit_player(
     mut commands: Commands,
     enemy_query: Query<&Transform, With<Enemy>>,
     mut player_query: Query<(Entity, &Transform), With<Player>>,
+    mut game_over_event_writer: EventWriter<GameOverEvent>,
     asset_server: Res<AssetServer>,
 ) {
     if let Ok((player_entity, player_transform)) = player_query.single_mut() {
@@ -328,6 +343,7 @@ fn enemy_hit_player(
                     PlaybackSettings::DESPAWN,
                 ));
                 commands.entity(player_entity).despawn();
+                game_over_event_writer.write(GameOverEvent);
             }
         }
     }
@@ -415,5 +431,42 @@ fn spawn_enemies_over_time(
                 direction: Vec2::new(random(), random()).normalize(),
             },
         ));
+    }
+}
+
+fn handle_game_over(game_over_event_reader: EventReader<GameOverEvent>, score: Res<Score>) {
+    if game_over_event_reader.len() > 0 {
+        println!("Game Over! Final Score: {}", score.value);
+    }
+}
+
+fn handle_high_scores(
+    game_over_event_reader: EventReader<GameOverEvent>,
+    mut high_scores: ResMut<HighScores>,
+    score: Res<Score>,
+) {
+    if game_over_event_reader.len() > 0 {
+        let player_name = "Player"; // Replace with actual player name input
+        high_scores
+            .scores
+            .push((player_name.to_string(), score.value));
+        high_scores.scores.sort_by(|a, b| b.1.cmp(&a.1)); // Sort by score descending
+        high_scores.scores.truncate(10); // Keep only top 10 scores
+        println!("High Scores: {:?}", high_scores.scores);
+    }
+}
+
+fn high_scores_updated(high_scores: Res<HighScores>) {
+    if high_scores.is_changed() {
+        println!("High Scores Updated: {:?}", high_scores.scores);
+    }
+}
+
+fn exit_game(
+    keyboard_input: Res<ButtonInput<KeyCode>>,
+    mut app_exit_event_writer: EventWriter<AppExit>,
+) {
+    if keyboard_input.just_pressed(KeyCode::Escape) {
+        app_exit_event_writer.write(AppExit::Success);
     }
 }
