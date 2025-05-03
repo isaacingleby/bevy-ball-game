@@ -33,15 +33,23 @@ const ENEMY_SIZE: f32 = 64.0; // Size of the enemy sprite
 const ENEMY_SIZE_HALF: f32 = ENEMY_SIZE / 2.0;
 const ENEMY_SPEED: f32 = 200.0;
 
+const NUMBER_OF_STARS: usize = 10;
+const STAR_SIZE: f32 = 30.0; // Size of the star sprite
+const STAR_SIZE_HALF: f32 = STAR_SIZE / 2.0;
+
 fn main() {
     App::new()
         .add_plugins(dx12_plugin())
-        .add_systems(Startup, (spawn_camera, spawn_player, spawn_enemies))
+        .add_systems(
+            Startup,
+            (spawn_camera, spawn_player, spawn_enemies, spawn_stars),
+        )
         .add_systems(
             Update,
             (
                 player_movement,
                 confine_player_movement,
+                player_hit_star,
                 enemy_movement,
                 confine_enemy_movement,
                 update_enemy_direction,
@@ -58,6 +66,9 @@ struct Player;
 struct Enemy {
     direction: Vec2,
 }
+
+#[derive(Component)]
+struct Star;
 
 fn spawn_player(
     mut commands: Commands,
@@ -111,6 +122,27 @@ fn spawn_enemies(
     }
 }
 
+fn spawn_stars(
+    mut commands: Commands,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    asset_server: Res<AssetServer>,
+) {
+    let window = window_query.single().unwrap();
+    for _i in 0..NUMBER_OF_STARS {
+        let random_x = random::<f32>() * window.width();
+        let random_y = random::<f32>() * window.height();
+
+        commands.spawn((
+            Sprite {
+                image: asset_server.load("sprites/star.png"),
+                ..default()
+            },
+            Transform::from_xyz(random_x, random_y, 0.0),
+            Star,
+        ));
+    }
+}
+
 fn player_movement(
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mut player_query: Query<&mut Transform, With<Player>>,
@@ -150,22 +182,18 @@ fn confine_player_movement(
         let y_min = PLAYER_SIZE_HALF;
         let y_max = window.height() - PLAYER_SIZE_HALF;
 
-        let mut translation = player_transform.translation;
-
         // Bound the player x position
-        if translation.x < x_min {
-            translation.x = x_min;
-        } else if translation.x > x_max {
-            translation.x = x_max;
+        if player_transform.translation.x < x_min {
+            player_transform.translation.x = x_min;
+        } else if player_transform.translation.x > x_max {
+            player_transform.translation.x = x_max;
         }
         // Bound the player y position
-        if translation.y < y_min {
-            translation.y = y_min;
-        } else if translation.y > y_max {
-            translation.y = y_max;
+        if player_transform.translation.y < y_min {
+            player_transform.translation.y = y_min;
+        } else if player_transform.translation.y > y_max {
+            player_transform.translation.y = y_max;
         }
-
-        player_transform.translation = translation;
     }
 }
 
@@ -257,6 +285,29 @@ fn enemy_hit_player(
                     PlaybackSettings::DESPAWN,
                 ));
                 commands.entity(player_entity).despawn();
+            }
+        }
+    }
+}
+
+fn player_hit_star(
+    mut commands: Commands,
+    player_query: Query<&Transform, With<Player>>,
+    mut star_query: Query<(Entity, &Transform), With<Star>>,
+    asset_server: Res<AssetServer>,
+) {
+    if let Ok(player_transform) = player_query.single() {
+        for (star_entity, star_transform) in star_query.iter_mut() {
+            let distance = player_transform
+                .translation
+                .distance(star_transform.translation);
+            if distance < (PLAYER_SIZE_HALF + STAR_SIZE_HALF) {
+                println!("Player hit star!");
+                commands.spawn((
+                    AudioPlayer::new(asset_server.load("audio/laserLarge_000.ogg")),
+                    PlaybackSettings::DESPAWN,
+                ));
+                commands.entity(star_entity).despawn();
             }
         }
     }
