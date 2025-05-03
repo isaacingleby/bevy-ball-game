@@ -1,9 +1,23 @@
 use bevy::{
-    app::{Startup, Update}, asset::AssetServer, audio::{AudioLoader, AudioPlayer, AudioSink, AudioSource, PlaybackSettings}, core_pipeline::core_2d::Camera2d, ecs::{
+    app::{Startup, Update},
+    asset::AssetServer,
+    audio::{AudioPlayer, PlaybackSettings},
+    core_pipeline::core_2d::Camera2d,
+    ecs::{
         component::Component,
+        entity::Entity,
         query::With,
         system::{Commands, Query, Res},
-    }, input::{keyboard::KeyCode, ButtonInput}, math::Vec2, prelude::App, render::camera::Camera, sprite::Sprite, time::Time, transform::components::Transform, utils::default, window::{PrimaryWindow, Window}
+    },
+    input::{ButtonInput, keyboard::KeyCode},
+    math::Vec2,
+    prelude::App,
+    render::camera::Camera,
+    sprite::Sprite,
+    time::Time,
+    transform::components::Transform,
+    utils::default,
+    window::{PrimaryWindow, Window},
 };
 
 use rand::{random, seq::IndexedRandom};
@@ -31,6 +45,7 @@ fn main() {
                 enemy_movement,
                 confine_enemy_movement,
                 update_enemy_direction,
+                enemy_hit_player,
             ),
         )
         .run();
@@ -130,7 +145,6 @@ fn confine_player_movement(
 ) {
     let window = window_query.single().unwrap();
     if let Ok(mut player_transform) = player_query.single_mut() {
-
         let x_min = PLAYER_SIZE_HALF;
         let x_max = window.width() - PLAYER_SIZE_HALF;
         let y_min = PLAYER_SIZE_HALF;
@@ -173,7 +187,7 @@ fn update_enemy_direction(
     let y_min = ENEMY_SIZE_HALF;
     let y_max = window.height() - ENEMY_SIZE_HALF;
 
-    let sound_effects = vec!("audio/pluck_001.ogg", "audio/pluck_002.ogg");
+    let sound_effects = vec!["audio/pluck_001.ogg", "audio/pluck_002.ogg"];
 
     for (transform, mut enemy) in enemy_query.iter_mut() {
         let mut direction_has_changed = false;
@@ -221,6 +235,29 @@ fn confine_enemy_movement(
             transform.translation.y = y_min;
         } else if transform.translation.y > y_max {
             transform.translation.y = y_max;
+        }
+    }
+}
+
+fn enemy_hit_player(
+    mut commands: Commands,
+    enemy_query: Query<&Transform, With<Enemy>>,
+    mut player_query: Query<(Entity, &Transform), With<Player>>,
+    asset_server: Res<AssetServer>,
+) {
+    if let Ok((player_entity, player_transform)) = player_query.single_mut() {
+        for enemy_transform in enemy_query.iter() {
+            let distance = player_transform
+                .translation
+                .distance(enemy_transform.translation);
+            if distance < (PLAYER_SIZE_HALF + ENEMY_SIZE_HALF) {
+                println!("Enemy hit player! Game Over!");
+                commands.spawn((
+                    AudioPlayer::new(asset_server.load("audio/explosionCrunch_000.ogg")),
+                    PlaybackSettings::DESPAWN,
+                ));
+                commands.entity(player_entity).despawn();
+            }
         }
     }
 }
