@@ -124,8 +124,10 @@ impl Default for EnemySpawnTimer {
     }
 }
 
-#[derive(Event)]
-struct GameOverEvent;
+#[derive(Event, Debug)]
+struct GameOverEvent {
+    score: u32,
+}
 
 fn spawn_player(
     mut commands: Commands,
@@ -330,6 +332,7 @@ fn enemy_hit_player(
     mut player_query: Query<(Entity, &Transform), With<Player>>,
     mut game_over_event_writer: EventWriter<GameOverEvent>,
     asset_server: Res<AssetServer>,
+    score: Res<Score>,
 ) {
     if let Ok((player_entity, player_transform)) = player_query.single_mut() {
         for enemy_transform in enemy_query.iter() {
@@ -343,7 +346,7 @@ fn enemy_hit_player(
                     PlaybackSettings::DESPAWN,
                 ));
                 commands.entity(player_entity).despawn();
-                game_over_event_writer.write(GameOverEvent);
+                game_over_event_writer.write(GameOverEvent { score: score.value });
             }
         }
     }
@@ -434,18 +437,18 @@ fn spawn_enemies_over_time(
     }
 }
 
-fn handle_game_over(game_over_event_reader: EventReader<GameOverEvent>, score: Res<Score>) {
-    if game_over_event_reader.len() > 0 {
-        println!("Game Over! Final Score: {}", score.value);
+fn handle_game_over(mut game_over_event_reader: EventReader<GameOverEvent>) {
+    for game_over_event in game_over_event_reader.read() {
+        println!("Game Over! Final Score: {}", game_over_event.score);
     }
 }
 
 fn handle_high_scores(
-    game_over_event_reader: EventReader<GameOverEvent>,
+    mut game_over_event_reader: EventReader<GameOverEvent>,
     mut high_scores: ResMut<HighScores>,
     score: Res<Score>,
 ) {
-    if game_over_event_reader.len() > 0 {
+    for _game_over_event in game_over_event_reader.read() {
         let player_name = "Player"; // Replace with actual player name input
         high_scores
             .scores
@@ -453,10 +456,13 @@ fn handle_high_scores(
         high_scores.scores.sort_by(|a, b| b.1.cmp(&a.1)); // Sort by score descending
         high_scores.scores.truncate(10); // Keep only top 10 scores
         println!("High Scores: {:?}", high_scores.scores);
+        return;
     }
 }
 
-fn high_scores_updated(high_scores: Res<HighScores>) {
+/// This system was suggested by the tutorial to await for the high scores to be updated
+/// but `handle_high_scores` already does that task well enough.
+fn _high_scores_updated(high_scores: Res<HighScores>) {
     if high_scores.is_changed() {
         println!("High Scores Updated: {:?}", high_scores.scores);
     }
