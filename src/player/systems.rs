@@ -1,9 +1,7 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 
-use super::components::Player;
+use super::{PLAYER_SIZE_HALF, components::Player};
 
-const PLAYER_SIZE: f32 = 64.0; // Size of the player sprite
-pub const PLAYER_SIZE_HALF: f32 = PLAYER_SIZE / 2.0;
 const PLAYER_SPEED: f32 = 500.0;
 
 pub fn spawn_player(

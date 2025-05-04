@@ -2,7 +2,7 @@ use bevy::{prelude::*, window::PrimaryWindow};
 use rand::random;
 
 use crate::{
-    player::{components::Player, systems::PLAYER_SIZE_HALF},
+    player::{PLAYER_SIZE_HALF, components::Player},
     score::resources::Score,
 };
 

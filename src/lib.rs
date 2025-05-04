@@ -1,4 +1,3 @@
-pub mod custom_bundles;
 pub mod dx12_plugin;
 pub mod events;
 pub mod plugins_;

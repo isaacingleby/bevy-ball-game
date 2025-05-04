@@ -3,16 +3,13 @@ use rand::{random, seq::IndexedRandom};
 
 use crate::{
     events::GameOverEvent,
-    player::{components::Player, systems::PLAYER_SIZE_HALF},
+    player::{PLAYER_SIZE_HALF, components::Player},
     score::resources::Score,
 };
 
-use super::{components::Enemy, resources::EnemySpawnTimer};
-
-const ENEMY_SIZE: f32 = 64.0; // Size of the enemy sprite
-const ENEMY_SIZE_HALF: f32 = ENEMY_SIZE / 2.0;
-const MUMBER_OF_ENEMIES: usize = 4;
-const ENEMY_SPEED: f32 = 200.0;
+use super::{
+    ENEMY_SIZE_HALF, ENEMY_SPEED, MUMBER_OF_ENEMIES, components::Enemy, resources::EnemySpawnTimer,
+};
 
 pub fn spawn_enemies(
     mut commands: Commands,
