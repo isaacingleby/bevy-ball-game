@@ -2,18 +2,14 @@ use bevy::{
     app::{Startup, Update},
     prelude::App,
 };
-
 use bevy_ball_game::{
     dx12_plugin::dx12_plugin,
+    enemy::{resources::*, systems::*},
     events::GameOverEvent,
-    resources::{EnemySpawnTimer, HighScores, Score, StarSpawnTimer},
-    systems::{
-        confine_enemy_movement, confine_player_movement, enemy_hit_player, enemy_movement,
-        exit_game, handle_game_over, handle_high_scores, increment_enemy_spawn_timer,
-        increment_star_spawn_timer, player_hit_star, player_movement, spawn_camera, spawn_enemies,
-        spawn_enemies_over_time, spawn_player, spawn_stars, spawn_stars_over_time,
-        update_enemy_direction, update_score,
-    },
+    player::systems::*,
+    score::{resources::*, systems::*},
+    star::{resources::*, systems::*},
+    systems::*,
 };
 
 fn main() {
