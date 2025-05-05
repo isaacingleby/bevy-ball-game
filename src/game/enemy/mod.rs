@@ -2,6 +2,8 @@ use bevy::prelude::*;
 use resources::EnemySpawnTimer;
 use systems::*;
 
+use super::{SimulationState, states_::AppState};
+
 mod components;
 pub mod resources;
 pub mod systems;
@@ -16,7 +18,8 @@ pub struct EnemyPlugin;
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<EnemySpawnTimer>()
-            .add_systems(Startup, spawn_enemies)
+            // Spawn enemies when player enters the game state
+            .add_systems(OnEnter(AppState::Game), spawn_enemies)
             .add_systems(
                 Update,
                 (
@@ -26,7 +29,13 @@ impl Plugin for EnemyPlugin {
                     enemy_hit_player,
                     spawn_enemies_over_time,
                     increment_enemy_spawn_timer,
-                ),
-            );
+                )
+                    // this is one way of telling bevy to only run these systems when the game is
+                    // running
+                    .run_if(in_state(AppState::Game))
+                    .run_if(in_state(SimulationState::Running)),
+            )
+            // Despawn enemies when player exits the game state
+            .add_systems(OnExit(AppState::Game), despawn_enemies);
     }
 }

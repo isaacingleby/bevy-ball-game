@@ -1,19 +1,6 @@
-use bevy::{
-    app::AppExit,
-    core_pipeline::core_2d::Camera2d,
-    ecs::{
-        event::{EventReader, EventWriter},
-        query::With,
-        system::{Commands, Query, Res},
-    },
-    input::{ButtonInput, keyboard::KeyCode},
-    render::camera::Camera,
-    transform::components::Transform,
-    utils::default,
-    window::{PrimaryWindow, Window},
-};
+use bevy::{prelude::*, window::PrimaryWindow};
 
-use crate::events::GameOverEvent;
+use crate::{events::GameOverEvent, game::states_::AppState};
 
 pub fn spawn_camera(mut commands: Commands, window_query: Query<&Window, With<PrimaryWindow>>) {
     let window = window_query.single().unwrap();
@@ -26,6 +13,32 @@ pub fn spawn_camera(mut commands: Commands, window_query: Query<&Window, With<Pr
         },
         Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, 0.0),
     ));
+}
+
+pub fn transistion_to_game_state(
+    keyboard_input: Res<ButtonInput<KeyCode>>,
+    current_app_state: Res<State<AppState>>,
+    mut next_app_state: ResMut<NextState<AppState>>,
+) {
+    if keyboard_input.just_pressed(KeyCode::KeyG) {
+        if **current_app_state != AppState::Game {
+            next_app_state.set(AppState::Game);
+            println!("Entered AppState::Game");
+        }
+    }
+}
+
+pub fn transistion_to_main_menu_state(
+    keyboard_input: Res<ButtonInput<KeyCode>>,
+    current_app_state: Res<State<AppState>>,
+    mut next_app_state: ResMut<NextState<AppState>>,
+) {
+    if keyboard_input.just_pressed(KeyCode::KeyM) {
+        if **current_app_state != AppState::MainMenu {
+            next_app_state.set(AppState::MainMenu);
+            println!("Entered AppState::MainMenu");
+        }
+    }
 }
 
 pub fn handle_game_over(mut game_over_event_reader: EventReader<GameOverEvent>) {
