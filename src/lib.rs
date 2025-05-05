@@ -1,4 +1,3 @@
-pub mod dx12_plugin;
 pub mod events;
 pub mod plugins_;
 pub mod systems;

@@ -40,6 +40,32 @@ pub fn enemy_movement(mut enemy_query: Query<(&mut Transform, &Enemy)>, time: Re
     }
 }
 
+pub fn confine_enemy_movement(
+    mut enemy_query: Query<&mut Transform, With<Enemy>>,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+) {
+    let window = window_query.single().unwrap();
+    let x_min = ENEMY_SIZE_HALF;
+    let x_max = window.width() - ENEMY_SIZE_HALF;
+    let y_min = ENEMY_SIZE_HALF;
+    let y_max = window.height() - ENEMY_SIZE_HALF;
+
+    for mut transform in enemy_query.iter_mut() {
+        // Bound the enemy x position
+        if transform.translation.x < x_min {
+            transform.translation.x = x_min;
+        } else if transform.translation.x > x_max {
+            transform.translation.x = x_max;
+        }
+        // Bound the enemy y position
+        if transform.translation.y < y_min {
+            transform.translation.y = y_min;
+        } else if transform.translation.y > y_max {
+            transform.translation.y = y_max;
+        }
+    }
+}
+
 pub fn update_enemy_direction(
     mut commands: Commands,
     mut enemy_query: Query<(&Transform, &mut Enemy)>,
@@ -74,32 +100,6 @@ pub fn update_enemy_direction(
                 AudioPlayer::new(asset_server.load(*sound_effect_path)),
                 PlaybackSettings::DESPAWN,
             ));
-        }
-    }
-}
-
-pub fn confine_enemy_movement(
-    mut enemy_query: Query<&mut Transform, With<Enemy>>,
-    window_query: Query<&Window, With<PrimaryWindow>>,
-) {
-    let window = window_query.single().unwrap();
-    let x_min = ENEMY_SIZE_HALF;
-    let x_max = window.width() - ENEMY_SIZE_HALF;
-    let y_min = ENEMY_SIZE_HALF;
-    let y_max = window.height() - ENEMY_SIZE_HALF;
-
-    for mut transform in enemy_query.iter_mut() {
-        // Bound the enemy x position
-        if transform.translation.x < x_min {
-            transform.translation.x = x_min;
-        } else if transform.translation.x > x_max {
-            transform.translation.x = x_max;
-        }
-        // Bound the enemy y position
-        if transform.translation.y < y_min {
-            transform.translation.y = y_min;
-        } else if transform.translation.y > y_max {
-            transform.translation.y = y_max;
         }
     }
 }
