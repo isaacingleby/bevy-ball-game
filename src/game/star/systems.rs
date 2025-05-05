@@ -33,6 +33,15 @@ pub fn spawn_stars(
     }
 }
 
+pub fn despawn_stars(
+    mut commands: Commands,
+    star_query: Query<Entity, With<Star>>,
+) {
+    for star_entity in star_query.iter() {
+        commands.entity(star_entity).despawn();
+    }
+}
+
 pub fn player_hit_star(
     mut commands: Commands,
     player_query: Query<&Transform, With<Player>>,
