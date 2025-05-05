@@ -4,6 +4,14 @@ use crate::events::GameOverEvent;
 
 use super::resources::{HighScores, Score};
 
+pub fn insert_score(mut commands: Commands) {
+    commands.insert_resource(Score::default());
+}
+
+pub fn reset_score(mut commands: Commands) {
+    commands.remove_resource::<Score>();
+}
+
 pub fn handle_high_scores(
     mut game_over_event_reader: EventReader<GameOverEvent>,
     mut high_scores: ResMut<HighScores>,

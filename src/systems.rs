@@ -46,9 +46,15 @@ pub fn transistion_to_main_menu_state(
     }
 }
 
-pub fn handle_game_over(mut game_over_event_reader: EventReader<GameOverEvent>) {
+pub fn handle_game_over(
+    mut game_over_event_reader: EventReader<GameOverEvent>,
+    mut next_app_state: ResMut<NextState<AppState>>,
+    mut nex_simulation_state: ResMut<NextState<SimulationState>>,
+) {
     for game_over_event in game_over_event_reader.read() {
         println!("Game Over! Final Score: {}", game_over_event.score);
+        next_app_state.set(AppState::GameOver);
+        nex_simulation_state.set(SimulationState::Paused);
     }
 }
 
