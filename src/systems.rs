@@ -1,6 +1,9 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 
-use crate::{events::GameOverEvent, game::states_::AppState};
+use crate::{
+    events::GameOverEvent,
+    game::{SimulationState, states_::AppState},
+};
 
 pub fn spawn_camera(mut commands: Commands, window_query: Query<&Window, With<PrimaryWindow>>) {
     let window = window_query.single().unwrap();
@@ -32,10 +35,12 @@ pub fn transistion_to_main_menu_state(
     keyboard_input: Res<ButtonInput<KeyCode>>,
     current_app_state: Res<State<AppState>>,
     mut next_app_state: ResMut<NextState<AppState>>,
+    mut nex_simulation_state: ResMut<NextState<SimulationState>>,
 ) {
     if keyboard_input.just_pressed(KeyCode::KeyM) {
         if **current_app_state != AppState::MainMenu {
             next_app_state.set(AppState::MainMenu);
+            nex_simulation_state.set(SimulationState::Paused);
             println!("Entered AppState::MainMenu");
         }
     }
