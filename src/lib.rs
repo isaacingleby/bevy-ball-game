@@ -3,4 +3,4 @@ pub mod runtime;
 pub mod systems;
 
 pub mod game;
-mod main_menu;
+pub mod main_menu;
