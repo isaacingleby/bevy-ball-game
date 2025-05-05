@@ -3,8 +3,10 @@ use rand::{random, seq::IndexedRandom};
 
 use crate::{
     events::GameOverEvent,
-    player::{PLAYER_SIZE_HALF, components::Player},
-    score::resources::Score,
+    game::{
+        player::{PLAYER_SIZE_HALF, components::Player},
+        score::resources::Score,
+    },
 };
 
 use super::{

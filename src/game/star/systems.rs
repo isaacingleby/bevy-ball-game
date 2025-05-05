@@ -1,7 +1,7 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 use rand::random;
 
-use crate::{
+use crate::game::{
     player::{PLAYER_SIZE_HALF, components::Player},
     score::resources::Score,
 };

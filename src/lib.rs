@@ -1,8 +1,6 @@
 pub mod events;
-pub mod plugins_;
+pub mod runtime;
 pub mod systems;
 
-pub mod enemy;
-pub mod player;
-pub mod score;
-pub mod star;
+pub mod game;
+mod main_menu;
