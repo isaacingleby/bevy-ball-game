@@ -4,14 +4,16 @@ pub mod score;
 pub mod star;
 pub mod states_;
 mod systems;
+mod ui;
 
 use bevy::prelude::*;
 use enemy::EnemyPlugin;
 use player::PlayerPlugin;
 use score::ScorePlugin;
 use star::StarPlugin;
-use states_::AppState;
+use states_::*;
 use systems::*;
+use ui::*;
 
 use crate::{events::GameOverEvent, systems::*};
 
@@ -21,6 +23,7 @@ impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
         app.init_state::<SimulationState>()
             .add_event::<GameOverEvent>()
+            .add_plugins(GameUiPlugin)
             .add_plugins(EnemyPlugin)
             .add_plugins(PlayerPlugin)
             .add_plugins(ScorePlugin)
@@ -35,11 +38,4 @@ impl Plugin for GamePlugin {
                 ),
             );
     }
-}
-
-#[derive(States, Debug, Hash, Eq, PartialEq, Clone, Default)]
-pub enum SimulationState {
-    Running,
-    #[default]
-    Paused,
 }

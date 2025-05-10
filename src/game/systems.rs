@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use super::SimulationState;
+use crate::game::states_::SimulationState;
 
 /// Added due to tutorial, but not used in my version of the game.
 pub fn _pause_simulation(mut next_simulation_state: ResMut<NextState<SimulationState>>) {

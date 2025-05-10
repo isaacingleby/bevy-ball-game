@@ -7,3 +7,10 @@ pub enum AppState {
     Game,
     GameOver,
 }
+
+#[derive(States, Debug, Hash, Eq, PartialEq, Clone, Default)]
+pub enum SimulationState {
+    #[default]
+    Running,
+    Paused,
+}
