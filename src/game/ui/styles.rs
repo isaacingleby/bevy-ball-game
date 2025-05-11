@@ -4,7 +4,7 @@ pub const NORMAL_BUTTON_COLOUR: Color = Color::srgb(0.15, 0.15, 0.15);
 pub const HOVERED_BUTTON_COLOUR: Color = Color::srgb(0.25, 0.25, 0.25);
 pub const PRESSED_BUTTON_COLOUR: Color = Color::srgb(0.35, 0.35, 0.35);
 
-pub const PAUSE_MENU_NODE_STYLE: Node = {
+pub const MENU_NODE_STYLE: Node = {
     let mut node = Node::DEFAULT;
     node.flex_direction = FlexDirection::Column;
     node.justify_content = JustifyContent::Center;
@@ -16,7 +16,7 @@ pub const PAUSE_MENU_NODE_STYLE: Node = {
     node
 };
 
-pub const PAUSE_TITLE_NODE_STYLE: Node = {
+pub const TITLE_NODE_STYLE: Node = {
     let mut node = Node::DEFAULT;
     node.flex_direction = FlexDirection::Row;
     node.justify_content = JustifyContent::Center;
@@ -26,7 +26,7 @@ pub const PAUSE_TITLE_NODE_STYLE: Node = {
     node
 };
 
-pub const PAUSE_BUTTON_NODE_STYLE: Node = {
+pub const BUTTON_NODE_STYLE: Node = {
     let mut node = Node::DEFAULT;
     node.justify_content = JustifyContent::Center;
     node.align_items = AlignItems::Center;
@@ -39,6 +39,14 @@ pub const PAUSE_IMAGE_NODE_STYLE: Node = {
     let mut node = Node::DEFAULT;
     node.width = Val::Px(32.0);
     node.height = Val::Px(32.0);
+    node.margin = UiRect::new(Val::Px(8.0), Val::Px(8.0), Val::Px(8.0), Val::Px(8.0));
+    node
+};
+
+pub const GAME_OVER_IMAGE_NODE_STYLE: Node = {
+    let mut node = Node::DEFAULT;
+    node.width = Val::Px(64.0);
+    node.height = Val::Px(64.0);
     node.margin = UiRect::new(Val::Px(8.0), Val::Px(8.0), Val::Px(8.0), Val::Px(8.0));
     node
 };
