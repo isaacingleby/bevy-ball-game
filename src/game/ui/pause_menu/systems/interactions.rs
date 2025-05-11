@@ -33,12 +33,14 @@ pub fn interact_with_main_menu_button(
         (&Interaction, &mut BackgroundColor),
         (Changed<Interaction>, With<MainMenuButton>),
     >,
+    mut next_simulation_state: ResMut<NextState<SimulationState>>,
     mut next_app_state: ResMut<NextState<AppState>>,
 ) {
     if let Ok((interaction, mut background_colour)) = button_query.single_mut() {
         match interaction {
             Interaction::Pressed => {
                 *background_colour = PRESSED_BUTTON_COLOUR.into();
+                next_simulation_state.set(SimulationState::Running);
                 next_app_state.set(AppState::MainMenu);
             }
             Interaction::Hovered => {
