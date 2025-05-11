@@ -23,6 +23,7 @@ pub fn spawn_hud_overlay(mut commands: Commands, asset_server: Res<AssetServer>)
                     parent.spawn((
                         ImageNode {
                             image: asset_server.load("sprites/star.png"),
+                            color: Color::srgba(1.0, 1.0, 1.0, 0.7),
                             ..default()
                         },
                         GAME_OVER_IMAGE_NODE_STYLE,
@@ -52,6 +53,7 @@ pub fn spawn_hud_overlay(mut commands: Commands, asset_server: Res<AssetServer>)
                     parent.spawn((
                         ImageNode {
                             image: asset_server.load("sprites/ball_red_large.png"),
+                            color: Color::srgba(1.0, 1.0, 1.0, 0.7),
                             ..default()
                         },
                         GAME_OVER_IMAGE_NODE_STYLE,
