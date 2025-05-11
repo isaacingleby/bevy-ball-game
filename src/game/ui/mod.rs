@@ -1,6 +1,7 @@
 mod game_over_menu;
 mod hud;
 mod pause_menu;
+mod styles;
 
 use bevy::prelude::*;
 

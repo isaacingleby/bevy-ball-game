@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::game::ui::pause_menu::{components::*, styles::*};
+use crate::game::ui::{pause_menu::components::*, styles::*};
 
 pub fn despawn_pause_menu(
     mut commands: Commands,

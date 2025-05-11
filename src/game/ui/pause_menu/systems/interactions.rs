@@ -2,10 +2,7 @@ use bevy::prelude::*;
 
 use crate::game::{
     states_::*,
-    ui::pause_menu::{
-        components::{ResumeButton, *},
-        styles::*,
-    },
+    ui::{pause_menu::components::*, styles::*},
 };
 
 pub fn interact_with_resume_button(
