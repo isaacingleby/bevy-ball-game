@@ -54,7 +54,6 @@ pub fn spawn_hud_overlay(mut commands: Commands, asset_server: Res<AssetServer>)
                             image: asset_server.load("sprites/ball_red_large.png"),
                             ..default()
                         },
-
                         GAME_OVER_IMAGE_NODE_STYLE,
                     ));
                 });
