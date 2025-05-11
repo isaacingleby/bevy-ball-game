@@ -44,7 +44,7 @@ pub fn spawn_game_over_menu(mut commands: Commands, asset_server: Res<AssetServe
                     GAME_OVER_IMAGE_NODE_STYLE,
                 ));
             });
-            // === Resume Button ===
+            // === Restart Button ===
             parent
                 .spawn((
                     Button,

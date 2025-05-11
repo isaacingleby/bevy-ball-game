@@ -4,7 +4,7 @@ use systems::*;
 
 use super::{SimulationState, states_::AppState};
 
-mod components;
+pub mod components;
 pub mod resources;
 pub mod systems;
 
