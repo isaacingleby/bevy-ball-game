@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use resources::EnemySpawnTimer;
+use resources::*;
 use systems::*;
 
 use super::{SimulationState, states_::AppState};
@@ -17,9 +17,10 @@ pub struct EnemyPlugin;
 
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<EnemySpawnTimer>()
+        app.init_resource::<EnemySpawnCount>()
+            .init_resource::<EnemySpawnTimer>()
             // Spawn enemies when player enters the game state
-            .add_systems(OnEnter(AppState::Game), spawn_enemies)
+            .add_systems(OnEnter(AppState::Game), spawn_initial_enemies)
             .add_systems(
                 Update,
                 (

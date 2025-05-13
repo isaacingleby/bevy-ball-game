@@ -9,13 +9,12 @@ use crate::{
     },
 };
 
-use super::{
-    ENEMY_SIZE_HALF, ENEMY_SPEED, MUMBER_OF_ENEMIES, components::Enemy, resources::EnemySpawnTimer,
-};
+use super::{ENEMY_SIZE_HALF, ENEMY_SPEED, MUMBER_OF_ENEMIES, components::Enemy, resources::*};
 
-pub fn spawn_enemies(
+pub fn spawn_initial_enemies(
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
+    mut enemy_spawn_count: ResMut<EnemySpawnCount>,
     asset_server: Res<AssetServer>,
 ) {
     let window = window_query.single().unwrap();
@@ -33,6 +32,7 @@ pub fn spawn_enemies(
                 direction: Vec2::new(random(), random()),
             },
         ));
+        enemy_spawn_count.count += 1;
     }
 }
 
@@ -142,6 +142,7 @@ pub fn spawn_enemies_over_time(
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
     enemy_spawn_timer: Res<EnemySpawnTimer>,
+    mut enemy_spawn_count: ResMut<EnemySpawnCount>,
     asset_server: Res<AssetServer>,
 ) {
     if enemy_spawn_timer.timer.finished() {
@@ -159,6 +160,7 @@ pub fn spawn_enemies_over_time(
                 direction: Vec2::new(random(), random()).normalize(),
             },
         ));
+        enemy_spawn_count.count += 1;
     }
 }
 

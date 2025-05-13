@@ -7,8 +7,8 @@ use bevy::prelude::*;
 
 // use hud::HudPlugin;
 use game_over_menu::GameOverMenuPlugin;
-use pause_menu::PauseMenuPlugin;
 use hud::HUDPlugin;
+use pause_menu::PauseMenuPlugin;
 
 pub struct GameUiPlugin;
 
