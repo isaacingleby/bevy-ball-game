@@ -52,7 +52,6 @@ pub fn player_hit_star(
                 .translation
                 .distance(star_transform.translation);
             if distance < (PLAYER_SIZE_HALF + STAR_SIZE_HALF) {
-                println!("Player hit star!");
                 score.value += 1;
                 commands.spawn((
                     AudioPlayer::new(asset_server.load("audio/laserLarge_000.ogg")),

@@ -9,18 +9,34 @@ use crate::{
     },
 };
 
-use super::{ENEMY_SIZE_HALF, ENEMY_SPEED, MUMBER_OF_ENEMIES, components::Enemy, resources::*};
+use super::{
+    ENEMY_SIZE_8X, ENEMY_SIZE_HALF, ENEMY_SPEED, MUMBER_OF_ENEMIES, components::Enemy, resources::*,
+};
 
 pub fn spawn_initial_enemies(
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
+    player_query: Query<&Transform, With<Player>>,
     mut enemy_spawn_count: ResMut<EnemySpawnCount>,
     asset_server: Res<AssetServer>,
 ) {
+    let player_translation = match player_query.single() {
+        Ok(player_transform) => player_transform.translation,
+        Err(_) => Vec3::new(0.0, 0.0, 0.0),
+    };
     let window = window_query.single().unwrap();
     for _i in 0..MUMBER_OF_ENEMIES {
         let random_x = random::<f32>() * window.width();
         let random_y = random::<f32>() * window.height();
+
+        // Ensure enemies are not spawned too near the player
+        let x_distance = (random_x - player_translation.x).abs();
+        let y_distance = (random_y - player_translation.y).abs();
+
+        if x_distance < ENEMY_SIZE_8X && y_distance < ENEMY_SIZE_8X {
+            println!("Enemy spawn too close to player, skipping spawn");
+            continue; // Skip this spawn
+        }
 
         commands.spawn((
             Sprite {
@@ -36,10 +52,15 @@ pub fn spawn_initial_enemies(
     }
 }
 
-pub fn despawn_enemies(mut commands: Commands, enemy_query: Query<Entity, With<Enemy>>) {
+pub fn despawn_enemies(
+    mut commands: Commands,
+    enemy_query: Query<Entity, With<Enemy>>,
+    mut enemy_spawn_count: ResMut<EnemySpawnCount>,
+) {
     for enemy_entity in enemy_query.iter() {
         commands.entity(enemy_entity).despawn();
     }
+    enemy_spawn_count.count = 0;
 }
 
 pub fn enemy_movement(mut enemy_query: Query<(&mut Transform, &Enemy)>, time: Res<Time>) {
@@ -141,6 +162,7 @@ pub fn enemy_hit_player(
 pub fn spawn_enemies_over_time(
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
+    player_query: Query<&Transform, With<Player>>,
     enemy_spawn_timer: Res<EnemySpawnTimer>,
     mut enemy_spawn_count: ResMut<EnemySpawnCount>,
     asset_server: Res<AssetServer>,
@@ -149,6 +171,17 @@ pub fn spawn_enemies_over_time(
         let window = window_query.single().unwrap();
         let random_x = random::<f32>() * window.width();
         let random_y = random::<f32>() * window.height();
+
+        // Ensure enemies are not spawned too near the player
+        if let Ok(player_translation) = player_query.single() {
+            let x_distance = (random_x - player_translation.translation.x).abs();
+            let y_distance = (random_y - player_translation.translation.y).abs();
+
+            if x_distance < ENEMY_SIZE_8X && y_distance < ENEMY_SIZE_8X {
+                println!("Enemy spawn too close to player, skipping spawn");
+                return; // Skip this spawn
+            }
+        }
 
         commands.spawn((
             Sprite {

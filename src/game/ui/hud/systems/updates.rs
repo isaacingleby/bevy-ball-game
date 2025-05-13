@@ -1,9 +1,7 @@
 use bevy::prelude::*;
 
 use crate::game::{
-    enemy::resources::EnemySpawnCount,
-    score::resources::Score,
-    ui::hud::components::*,
+    enemy::resources::EnemySpawnCount, score::resources::Score, ui::hud::components::*,
 };
 
 pub fn update_score_text(mut text_query: Query<&mut Text, With<ScoreText>>, score: Res<Score>) {
